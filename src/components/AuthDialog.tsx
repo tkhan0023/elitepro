@@ -11,9 +11,10 @@ interface AuthDialogProps {
   isOpen: boolean;
   onClose: () => void;
   type: "signin" | "join";
+  message?: string;
 }
 
-const AuthDialog = ({ isOpen, onClose, type }: AuthDialogProps) => {
+const AuthDialog = ({ isOpen, onClose, type, message }: AuthDialogProps) => {
   const { signInWithEmail, isLoading, error } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +44,9 @@ const AuthDialog = ({ isOpen, onClose, type }: AuthDialogProps) => {
           <DialogTitle className="text-center">
             {type === "signin" ? "Sign In to Elite Palace" : "Join Elite Palace"}
           </DialogTitle>
+          {message && (
+            <p className="text-sm text-gray-600 text-center mt-2">{message}</p>
+          )}
         </DialogHeader>
         <div className="space-y-4">
           {!showEmailForm ? (

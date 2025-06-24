@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/context/WishlistContext';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useAuth } from '@/store/AppContext';
+import AuthDialog from '@/components/AuthDialog';
 
 // Export the products array for kurtis
 export const products = [
@@ -129,28 +131,13 @@ export const products = [
 export const WomenKurtis: React.FC = () => {
   const navigate = useNavigate();
   const { addToWishlist, removeFromWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
-  const sortByOptions = [
-    { label: 'Relevance', value: 'relevance' },
-    { label: 'Price: Low to High', value: 'price-low-high' },
-    { label: 'Price: High to Low', value: 'price-high-low' },
-    { label: 'Rating', value: 'rating' }
-  ];
   const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
-  const priceOptions = [
-    { label: '₹0 - ₹500', min: 0, max: 500 },
-    { label: '₹500 - ₹1000', min: 500, max: 1000 },
-    { label: '₹1000 - ₹2000', min: 1000, max: 2000 }
-  ];
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showBestSeller, setShowBestSeller] = useState(false);
-  const [selectedGender] = useState<string>('Female');
-  const categoryOptions = [
-    { label: 'Sarees', value: 'Sarees' },
-    { label: 'Kurtis', value: 'Kurtis' },
-    { label: 'Dresses', value: 'Dresses' },
-    { label: 'Tops', value: 'Tops' }
-  ];
+  const [selectedGender, setSelectedGender] = useState<string>('Female');
   const [selectedCategory, setSelectedCategory] = useState<string>('Kurtis');
 
   const allTags = Array.from(new Set(products.flatMap((p) => p.tags)));
@@ -163,6 +150,18 @@ export const WomenKurtis: React.FC = () => {
     const isFemale = product.gender === 'Female';
     return inPriceRange && hasTag && isBestSeller && inCategory && isFemale;
   });
+
+  const handleWishlistAction = (product) => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    if (wishlist.some((p) => p.id === product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -357,13 +356,7 @@ export const WomenKurtis: React.FC = () => {
                       )}
                       <button
                         className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors z-10"
-                        onClick={() => {
-                          if (isInWishlist) {
-                            removeFromWishlist(product.id);
-                          } else {
-                            addToWishlist(product);
-                          }
-                        }}
+                        onClick={() => handleWishlistAction(product)}
                         aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
                         {isInWishlist ? (
@@ -410,6 +403,12 @@ export const WomenKurtis: React.FC = () => {
           </section>
         </div>
       </main>
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        type="signin"
+        message="Please sign in to add items to your wishlist"
+      />
     </div>
   );
 };

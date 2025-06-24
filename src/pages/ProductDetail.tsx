@@ -4,13 +4,19 @@ import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Heart, ShoppingBag } from 'lucide-react';
+import { useWishlist } from '@/context/WishlistContext';
+import { useAuth } from '@/store/AppContext';
+import AuthDialog from '@/components/AuthDialog';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   // Hardcoded product data
   const products = [
@@ -102,6 +108,33 @@ const ProductDetail = () => {
   if (!product) {
     return <div>Product not found</div>;
   }
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    if (product) {
+      addToCart(product, selectedSize, quantity);
+    }
+  };
+
+  const handleWishlist = () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    if (product) {
+      const inWishlist = wishlist.some((item) => item.id === id);
+      if (inWishlist) {
+        removeFromWishlist(id);
+      } else {
+        addToWishlist(product);
+      }
+    }
+  };
+
+  const inWishlist = wishlist.some((item) => item.id === id);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -198,14 +231,20 @@ const ProductDetail = () => {
               <div className="flex gap-4">
                 <button
                     className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                    onClick={() => addToCart(product as any, selectedSize, quantity)}
+                    onClick={handleAddToCart}
                   >
                   <ShoppingBag className="w-5 h-5" />
                   Add to Cart
                 </button>
                 
-                <button className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Heart className="w-6 h-6 text-gray-600" />
+                <button
+                  onClick={handleWishlist}
+                  className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Heart
+                    className={inWishlist ? 'text-red-500' : 'text-gray-600'}
+                    fill={inWishlist ? 'currentColor' : 'none'}
+                  />
                 </button>
               </div>
               
@@ -228,6 +267,12 @@ const ProductDetail = () => {
       </main>
       
       <Footer />
+
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        type="signin"
+      />
     </div>
   );
 };

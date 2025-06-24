@@ -6,16 +6,39 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { products } from './MenTrousers';
+import { useAuth } from '@/store/AppContext';
+import AuthDialog from '@/components/AuthDialog';
 
 const MenTrouserDetail = () => {
   const { id } = useParams();
   const product = products.find((p) => p.id === id);
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
   const inWishlist = !!product && wishlist.some((p) => p.id === product.id);
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || '');
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(product?.images?.[0] || '');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authDialogType, setAuthDialogType] = useState<'signin' | 'join'>('signin');
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      setAuthDialogType('signin');
+      setShowAuthDialog(true);
+      return;
+    }
+    addToCart(product, selectedSize, quantity);
+  };
+
+  const handleWishlistAction = () => {
+    if (!isAuthenticated) {
+      setAuthDialogType('signin');
+      setShowAuthDialog(true);
+      return;
+    }
+    inWishlist ? removeFromWishlist(product.id) : addToWishlist(product);
+  };
 
   if (!product) return <div>Product not found</div>;
 
@@ -99,14 +122,14 @@ const MenTrouserDetail = () => {
               <div className="flex gap-4">
                 <button
                   className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                  onClick={() => addToCart(product, selectedSize, quantity)}
+                  onClick={handleAddToCart}
                 >
                   <ShoppingBag className="w-5 h-5" />
                   Add to Cart
                 </button>
                 <button
                   className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product)}
+                  onClick={handleWishlistAction}
                 >
                   <Heart className={`w-6 h-6 ${inWishlist ? 'text-black' : 'text-gray-600'}`} fill={inWishlist ? 'currentColor' : 'none'} />
                 </button>
@@ -128,6 +151,12 @@ const MenTrouserDetail = () => {
         </div>
       </main>
       <Footer />
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        type={authDialogType}
+        message="Please sign in to add items to your wishlist"
+      />
     </div>
   );
 };

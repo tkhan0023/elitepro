@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useWishlist } from '@/context/WishlistContext';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useAuth } from '@/store/AppContext';
+import AuthDialog from '@/components/AuthDialog';
 
 // Export the products array for sarees (copying shirts for now)
 export const products = [
@@ -105,6 +107,8 @@ export const WomenSarees: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToWishlist, removeFromWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
   const sortByOptions = [
     { label: 'Relevance', value: 'relevance' },
@@ -112,16 +116,17 @@ export const WomenSarees: React.FC = () => {
     { label: 'Price: High to Low', value: 'price-high-low' },
     { label: 'Rating', value: 'rating' }
   ];
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
   const priceOptions = [
     { label: '₹0 - ₹100', min: 0, max: 100 },
     { label: '₹100 - ₹300', min: 100, max: 300 },
     { label: '₹300 - ₹500', min: 300, max: 500 },
-    { label: '₹500 - ₹1000', min: 500, max: 1000 }
+    { label: '₹500 - ₹1000', min: 500, max: 1000 },
+    { label: '₹1000 - ₹2000', min: 1000, max: 2000 }
   ];
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showBestSeller, setShowBestSeller] = useState(false);
-  const [selectedGender] = useState<string>('Female');
+  const [selectedGender, setSelectedGender] = useState<string>('Female');
   const categoryOptions = [
     { label: 'Sarees', value: 'Sarees' },
     { label: 'Kurtis', value: 'Kurtis' },
@@ -149,6 +154,18 @@ export const WomenSarees: React.FC = () => {
     const isFemale = product.gender === 'Female';
     return inPriceRange && hasTag && isBestSeller && inCategory && isFemale;
   });
+
+  const handleWishlistAction = (product) => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    if (wishlist.some((p) => p.id === product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -375,13 +392,7 @@ export const WomenSarees: React.FC = () => {
                             )}
                             <button
                               className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors z-10"
-                              onClick={() => {
-                                if (isInWishlist) {
-                                  removeFromWishlist(product.id);
-                                } else {
-                                  addToWishlist(product);
-                                }
-                              }}
+                              onClick={() => handleWishlistAction(product)}
                               aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                             >
                               {isInWishlist ? (
@@ -431,6 +442,12 @@ export const WomenSarees: React.FC = () => {
           </section>
         </div>
       </main>
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        type="signin"
+        message="Please sign in to add items to your wishlist"
+      />
     </div>
   );
 };

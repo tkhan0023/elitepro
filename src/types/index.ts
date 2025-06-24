@@ -1,24 +1,21 @@
 export interface Product {
-  id: string;
-  name: string;
-  description: string;
+  id: string | number;
+  title: string;
+  brand: string;
   price: number;
   originalPrice?: number;
   discount?: number;
-  category: string;
-  subcategory?: string;
   image: string;
   images?: string[];
-  rating: number;
-  reviews: number;
-  inStock: boolean;
-  sizes?: string[];
-  colors?: string[];
-  brand: string;
-  createdAt: string;
-  updatedAt: string;
+  rating?: number;
+  reviews?: number;
+  isBestseller?: boolean;
   tags?: string[];
-  specifications?: Record<string, string>;
+  gender?: string;
+  category?: string;
+  sizes?: string[];
+  description?: string;
+  features?: string[];
 }
 
 export interface User {

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/context/WishlistContext';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useAuth } from '@/store/AppContext';
+import AuthDialog from '@/components/AuthDialog';
 
 // Export the products array (Trousers)
 export const products = [
@@ -103,6 +105,8 @@ export const products = [
 export const MenTrousers: React.FC = () => {
   const navigate = useNavigate();
   const { addToWishlist, removeFromWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
   const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -169,6 +173,18 @@ export const MenTrousers: React.FC = () => {
       ]
     }
   ];
+
+  const handleWishlistAction = (product) => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    if (wishlist.some((p) => p.id === product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -342,13 +358,7 @@ export const MenTrousers: React.FC = () => {
                       )}
                       <button
                         className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors z-10"
-                        onClick={() => {
-                          if (isInWishlist) {
-                            removeFromWishlist(product.id);
-                          } else {
-                            addToWishlist(product);
-                          }
-                        }}
+                        onClick={() => handleWishlistAction(product)}
                         aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
                         {isInWishlist ? (
@@ -392,6 +402,12 @@ export const MenTrousers: React.FC = () => {
           </section>
         </div>
       </main>
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        type="signin"
+        message="Please sign in to add items to your wishlist"
+      />
     </div>
   );
 };

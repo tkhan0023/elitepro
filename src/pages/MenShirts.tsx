@@ -5,6 +5,8 @@ import { useWishlist } from '@/context/WishlistContext';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { Search, TrendingUp, Tag, Percent } from 'lucide-react';
+import { useAuth } from '@/store/AppContext';
+import AuthDialog from '@/components/AuthDialog';
 
 // Export the products array
 export const products = [
@@ -277,6 +279,8 @@ export const MenShirts: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToWishlist, removeFromWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   // Initialize state with URL params
   const [sortBy, setSortBy] = useState(() => searchParams.get('sortBy') || 'relevance');
@@ -394,6 +398,16 @@ export const MenShirts: React.FC = () => {
       ]
     }
   ];
+
+  const handleWishlistAction = (product) => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    wishlist.some(p => p.id === product.id) 
+      ? removeFromWishlist(product.id)
+      : addToWishlist(product);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -552,10 +566,7 @@ export const MenShirts: React.FC = () => {
                       onClick={() => navigate(`/menshirt/${product.id}`)}
                     />
                     <button 
-                      onClick={() => wishlist.some(p => p.id === product.id) 
-                        ? removeFromWishlist(product.id)
-                        : addToWishlist(product)
-                      }
+                      onClick={() => handleWishlistAction(product)}
                       className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors z-10"
                     >
                       {wishlist.some(p => p.id === product.id) 
@@ -591,6 +602,12 @@ export const MenShirts: React.FC = () => {
           </section>
         </div>
       </main>
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        type="signin"
+        message="Please sign in to add items to your wishlist"
+      />
     </div>
   );
 };
