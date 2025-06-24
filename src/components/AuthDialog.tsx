@@ -18,8 +18,14 @@ const AuthDialog = ({ isOpen, onClose, type }: AuthDialogProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
 
-  // Removed handleDemoLogin as we only use email/password login
+  const handleDemoClick = () => {
+    setShowDemoCredentials(true);
+    setEmail("demo@example.com");
+    setPassword("123");
+    setShowEmailForm(true);
+  };
 
   const handleEmailLogin = async () => {
     if (signInWithEmail) {
@@ -29,15 +35,16 @@ const AuthDialog = ({ isOpen, onClose, type }: AuthDialogProps) => {
       }
     }
   };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-center">
-            {type === "signin" ? "Sign In to AJIO" : "Join AJIO"}
+            {type === "signin" ? "Sign In to Elite Palace" : "Join Elite Palace"}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4">
           {!showEmailForm ? (
             <>
               <Button variant="outline" className="w-full flex items-center gap-2" disabled={isLoading}>
@@ -56,10 +63,10 @@ const AuthDialog = ({ isOpen, onClose, type }: AuthDialogProps) => {
                 <Button 
                   variant="default" 
                   className="w-full" 
-                  onClick={() => setShowEmailForm(true)}
+                  onClick={handleDemoClick}
                   disabled={isLoading}
                 >
-                  "                  Sign in with Demo Account"
+                  Sign in with Demo Account
                 </Button>
               )}
             </>
@@ -109,12 +116,25 @@ const AuthDialog = ({ isOpen, onClose, type }: AuthDialogProps) => {
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => setShowEmailForm(false)}
+                  onClick={() => {
+                    setShowEmailForm(false);
+                    setShowDemoCredentials(false);
+                  }}
                   disabled={isLoading}
                 >
                   Back
                 </Button>
               </div>
+            </div>
+          )}
+          
+          {showDemoCredentials && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-md">
+              <p className="text-sm text-gray-600 text-center">
+                Demo Credentials:<br />
+                Email: demo@example.com<br />
+                Password: 123
+              </p>
             </div>
           )}
         </div>
